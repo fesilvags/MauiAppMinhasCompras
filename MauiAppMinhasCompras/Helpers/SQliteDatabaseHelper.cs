@@ -3,53 +3,91 @@ using SQLite;
 
 namespace MauiAppMinhasCompras.Helpers
 {
+    // Classe responsável por gerenciar a conexão com o banco SQLite e operações CRUD
     public class SQLiteDatabaseHelper
     {
-        // Objeto que representa a conexão assíncrona com o banco
+        // Conexão assíncrona com o banco
         readonly SQLiteAsyncConnection _conn;
 
+        // Construtor: cria a conexão e garante que a tabela Produto exista
         public SQLiteDatabaseHelper(string path)
         {
             _conn = new SQLiteAsyncConnection(path);
-            _conn.CreateTableAsync<Produto>().Wait();
+            _conn.CreateTableAsync<Produto>().Wait(); // cria a tabela se não existir
         }
 
-        // Método responsável por inserir um novo produto no banco
+        /// <summary>
+        /// Insere um novo produto no banco.
+        /// Garante que a categoria seja armazenada em MAIÚSCULO.
+        /// </summary>
         public Task<int> Insert(Produto p)
         {
+            // Se Categoria estiver preenchida, converte para MAIÚSCULO
+            if (!string.IsNullOrEmpty(p.Categoria))
+            {
+                p.Categoria = p.Categoria.ToUpper();
+            }
+
             return _conn.InsertAsync(p);
         }
 
-        // Método responsável por atualizar um produto existente
-        public Task<List<Produto>> Update(Produto p)
+        /// <summary>
+        /// Atualiza um produto existente no banco.
+        /// Inclui agora a Categoria e mantém em MAIÚSCULO.
+        /// </summary>
+        public Task<int> Update(Produto p)
         {
-            string sql = "UPDATE Produto SET Descricao=?, Quantidade=?, Preco=? WHERE Id=?";
+            if (!string.IsNullOrEmpty(p.Categoria))
+            {
+                p.Categoria = p.Categoria.ToUpper();
+            }
 
-            return _conn.QueryAsync<Produto>(
-                sql, p.Descricao, p.Quantidade, p.Preco, p.Id
-            );
+            // SQL de atualização: inclui Categoria
+            string sql = "UPDATE Produto SET Descricao=?, Quantidade=?, Preco=?, Categoria=? WHERE Id=?";
+
+            // ExecuteAsync retorna a quantidade de linhas afetadas
+            return _conn.ExecuteAsync(sql, p.Descricao, p.Quantidade, p.Preco, p.Categoria, p.Id);
         }
 
-        // Método responsável por excluir um produto pelo Id
+        /// <summary>
+        /// Remove um produto pelo seu Id
+        /// </summary>
         public Task<int> Delete(int id)
         {
             return _conn.Table<Produto>().DeleteAsync(i => i.Id == id);
         }
 
-        // Método que retorna todos os produtos cadastrados
+        /// <summary>
+        /// Retorna todos os produtos cadastrados
+        /// </summary>
         public Task<List<Produto>> GetAll()
         {
-            // Retorna uma lista com todos os registros da tabela Produto
             return _conn.Table<Produto>().ToListAsync();
         }
 
-        // Método para pesquisar produtos pelo nome/descrição
+        /// <summary>
+        /// Pesquisa produtos filtrando pela descrição
+        /// </summary>
         public Task<List<Produto>> Search(string q)
         {
-            // Comando SQL para buscar produtos que contenham o texto digitado
-            string sql = "SELECT * FROM Produto WHERE descricao LIKE '%" + q + "%'";
+            string sql = "SELECT * FROM Produto WHERE descricao LIKE ?";
+            return _conn.QueryAsync<Produto>(sql, "%" + q + "%");
+        }
 
-            return _conn.QueryAsync<Produto>(sql);
+        /// <summary>
+        /// Pesquisa produtos filtrando por descrição e categoria ao mesmo tempo.
+        /// Garante que a categoria seja consultada em MAIÚSCULO.
+        /// </summary>
+        public Task<List<Produto>> SearchByCategoria(string busca, string categoria)
+        {
+            // converte a categoria para MAIÚSCULO para garantir consistência
+            if (!string.IsNullOrEmpty(categoria))
+            {
+                categoria = categoria.ToUpper();
+            }
+
+            string sql = "SELECT * FROM Produto WHERE descricao LIKE ? AND Categoria = ?";
+            return _conn.QueryAsync<Produto>(sql, "%" + busca + "%", categoria);
         }
     }
 }

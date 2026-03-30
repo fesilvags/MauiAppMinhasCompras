@@ -1,9 +1,11 @@
 ﻿using MauiAppMinhasCompras.Helpers;
+using System.Globalization;
 
 namespace MauiAppMinhasCompras
 {
     public partial class App : Application
     {
+
         static SQLiteDatabaseHelper _db;
 
         public static SQLiteDatabaseHelper Db
@@ -33,6 +35,8 @@ namespace MauiAppMinhasCompras
         public App()
         {
             InitializeComponent();
+
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("pt-BR");
 
             MainPage = new NavigationPage(new Views.ListaProduto());
         }

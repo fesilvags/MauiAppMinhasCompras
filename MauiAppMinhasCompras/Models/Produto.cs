@@ -23,6 +23,17 @@ namespace MauiAppMinhasCompras.Models
         }
         public double Quantidade { get; set; }
         public double Preco { get; set; }
+        public string Categoria { get; set; }
+        public static class CategoriaLista
+        {
+            public static List<string> Todas => new List<string>
+    {
+        "Alimentos",
+        "Limpeza",
+        "Eletrônicos",
+        "Outros"
+    };
+        }
         public double Total { get => Quantidade * Preco; }
     }
 }

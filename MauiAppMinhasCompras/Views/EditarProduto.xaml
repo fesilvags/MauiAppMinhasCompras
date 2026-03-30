@@ -12,6 +12,10 @@
         <Label Text="Descrição do Produto:" />
         <Entry x:Name="txt_descricao" Text="{Binding Descricao}" />
 
+        <Label Text="Categoria:" />
+        <Picker x:Name="pck_Categoria"
+        Title="Selecione a Categoria" />
+
         <Label Text="Quantidade:" />
         <Entry x:Name="txt_quantidade" Text="{Binding Quantidade}" Keyboard="Numeric" />
 
